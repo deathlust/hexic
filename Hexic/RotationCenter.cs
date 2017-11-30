@@ -33,54 +33,18 @@
             if (clockwise) {
                 if (HasTwoLeftCells) {
                     SetCellData(cell3, cell1, cell2, shortColumns, longColumns);
-                    //if (OneCellInShortColumn) {
-                    //    longColumns[LongColumnIndex, LowCellIndex] = cell1;
-                    //    longColumns[LongColumnIndex, UpperCellIndex] = cell2;
-                    //    shortColumns[ShortColumnIndex, OneCellIndex] = cell3;
-                    //} else {
-                    //    shortColumns[ShortColumnIndex, LowCellIndex] = cell1;
-                    //    shortColumns[ShortColumnIndex, UpperCellIndex] = cell2;
-                    //    longColumns[LongColumnIndex, OneCellIndex] = cell3;
-                    //}
                 } else {
                     SetCellData(cell2, cell3, cell1, shortColumns, longColumns);
-                    //if (OneCellInShortColumn) {
-                    //    longColumns[LongColumnIndex, LowCellIndex] = cell3;
-                    //    longColumns[LongColumnIndex, UpperCellIndex] = cell1;
-                    //    shortColumns[ShortColumnIndex, OneCellIndex] = cell2;
-                    //} else {
-                    //    shortColumns[ShortColumnIndex, LowCellIndex] = cell3;
-                    //    shortColumns[ShortColumnIndex, UpperCellIndex] = cell1;
-                    //    longColumns[LongColumnIndex, OneCellIndex] = cell2;
-                    //}
                 }
             } else {
                 if (HasTwoLeftCells) {
                     SetCellData(cell2, cell3, cell1, shortColumns, longColumns);
-                    //if (OneCellInShortColumn) {
-                    //    longColumns[LongColumnIndex, LowCellIndex] = cell3;
-                    //    longColumns[LongColumnIndex, UpperCellIndex] = cell1;
-                    //    shortColumns[ShortColumnIndex, OneCellIndex] = cell2;
-                    //} else {
-                    //    shortColumns[ShortColumnIndex, LowCellIndex] = cell3;
-                    //    shortColumns[ShortColumnIndex, UpperCellIndex] = cell1;
-                    //    longColumns[LongColumnIndex, OneCellIndex] = cell2;
-                    //}
                 } else {
                     SetCellData(cell3, cell1, cell2, shortColumns, longColumns);
-                    //if (OneCellInShortColumn) {
-                    //    longColumns[LongColumnIndex, LowCellIndex] = cell1;
-                    //    longColumns[LongColumnIndex, UpperCellIndex] = cell2;
-                    //    shortColumns[ShortColumnIndex, OneCellIndex] = cell3;
-                    //} else {
-                    //    shortColumns[ShortColumnIndex, LowCellIndex] = cell1;
-                    //    shortColumns[ShortColumnIndex, UpperCellIndex] = cell2;
-                    //    longColumns[LongColumnIndex, OneCellIndex] = cell3;
-                    //}
                 }
             }
         }
-        public bool CellsAreEqual(out int value, int[,] shortColumns, int[,] longColumns) {
+        public bool HasEqualCells(out int value, int[,] shortColumns, int[,] longColumns) {
             int one, low, upper;
             CellValues(out one, out low, out upper, shortColumns, longColumns);
             value = one;

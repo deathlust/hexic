@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 
 namespace Hexic {
@@ -42,6 +41,7 @@ namespace Hexic {
                             deniedNumber3 = shortColumns[i, j - 1];
                         }
                     }
+                    // prevent clusters in initial layout
                     do {
                         value = random.Next(MAX_NUMBER);
                     } while (value == deniedNumber1 || value == deniedNumber2 || value == deniedNumber3);
@@ -50,8 +50,6 @@ namespace Hexic {
             }
         }
         class PositionBuilder: Position {
-            readonly int[] shortColumnIndexes = new int[COLUMN_COUNT];
-            readonly int[] longColumnIndexes = new int[COLUMN_COUNT];
             bool ready = false;
             ulong scoreIncrement = 0;
             PositionBuilder(int[,] shortColumns, int[,] longColumns, ulong score)
@@ -64,7 +62,6 @@ namespace Hexic {
                 return new ValidPosition(shortColumns, longColumns, Score + scoreIncrement);
             }
             public PositionBuilder MakeTurn() {
-                // TODO: eliminate property call
                 while (ClusterCenterCount > 0) {
                     MarkHexesForClusterCount();
                     CountIterationScore();
@@ -74,10 +71,9 @@ namespace Hexic {
                 return this;
             }
             void MarkHexesForClusterCount() {
-                // TODO: eliminate method call
-                var clusters = GetClusters();
-                for (int value = 0; value < clusters.Length; ++value) {
-                    var list = clusters[value];
+                var clusterCenters = GetClusterCenters();
+                for (int value = 0; value < clusterCenters.Length; ++value) {
+                    var list = clusterCenters[value];
                     list.ForEach(point => {
                         point.SetAllCells(value - MAX_NUMBER - 1, shortColumns, longColumns);
                     });
@@ -92,8 +88,7 @@ namespace Hexic {
                     for (int j = 0; j < columnLength; ++j) {
                         int value = columns[i, j];
                         if (value < 0) {
-                            int cells = CountClusterCells(columns, i, j, value);
-                            scoreIncrement += ClusterScore(cells, value);
+                            scoreIncrement += ClusterScore(CountClusterCells(columns, i, j, value), value);
                         }
                     }
                 }
@@ -105,7 +100,11 @@ namespace Hexic {
                 columns[i, j] += 2 + 2 * MAX_NUMBER; 
                 return 1 + CountNeighborCells(columns, i, j, valueEquals);
             }
-
+            struct Cell {
+                public int I { get; set; }
+                public int J { get; set; }
+                public int[,] Columns { get; set; }
+            }
             int CountNeighborCells(int[,] columns, int i, int j, Predicate<int> filter) {
                 int count = 0;
                 var neighbors = CellNeighbors(columns, i, j, filter);
@@ -117,11 +116,6 @@ namespace Hexic {
                     count += CountNeighborCells(cell.Columns, cell.I, cell.J, filter);
                 });
                 return count;
-            }
-            struct Cell {
-                public int I { get; set; }
-                public int J { get; set; }
-                public int[,] Columns { get; set; }
             }
             List<Cell> CellNeighbors(int[,] columns, int i, int j, Predicate<int> filter) {
                 var list = new List<Cell>(6);
@@ -141,17 +135,17 @@ namespace Hexic {
                     otherColumnIndex = i + 1;
                     otherRowIndex = j - 1;
                 }
-                
+                // this column neighbors
                 if (j > 0)
                     list.Add(new Cell { Columns = columns, I = i, J = j - 1});
                 if (j < length - 1)
                     list.Add(new Cell { Columns = columns, I = i, J = j + 1 });
-                
+                // same index other column neighbors
                 if (j < otherLength)
                     list.Add(new Cell { Columns = otherColumns, I = i, J = j });
                 if (otherRowIndex >= 0 && otherRowIndex < otherLength)
                     list.Add(new Cell { Columns = otherColumns, I = i, J = otherRowIndex });
-                
+                // another index column neighbors
                 if (otherColumnIndex >= 0 && otherColumnIndex < COLUMN_COUNT) {
                     if (j < otherLength)
                         list.Add(new Cell { Columns = otherColumns, I = otherColumnIndex, J = j });
@@ -195,8 +189,7 @@ namespace Hexic {
                 var shortColumns = position.ShortColumns;
                 var longColumns = position.LongColumns;
                 point.Rotate(clockwise, shortColumns, longColumns);
-                var newPosition = new PositionBuilder(shortColumns, longColumns, position.Score);
-                return newPosition;
+                return new PositionBuilder(shortColumns, longColumns, position.Score);
             }
             protected override string Symbol(int cell) {
                 if (cell < 0) {
@@ -212,16 +205,16 @@ namespace Hexic {
         }
         public ValidPosition MakeTurn() {
             ValidPosition bestPosition = this;
-            Predicate<Position> compareScore =
+            Predicate<Position> betterScore =
                 p => p.Score > bestPosition.Score;
             for (int i = 0; i < 2 * COLUMN_COUNT - 1; ++i) {
                 for (int j = 0; j < 2 * SHORT_COLUMN_LENGTH - 1; ++j) {
                     var point = new RotationCenter(i, j);
                     var position = PositionBuilder.Generate(this, point, true).MakeTurn().Build();
-                    if (compareScore(position))
+                    if (betterScore(position))
                         bestPosition = position;
                     position = PositionBuilder.Generate(this, point, false).MakeTurn().Build();
-                    if (compareScore(position))
+                    if (betterScore(position))
                         bestPosition = position;
                 }
             }

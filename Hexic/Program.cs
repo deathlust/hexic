@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Linq;
 
 namespace Hexic {
     class Program {
         static void Main(string[] args) {
+            const bool TESTING = true;
             var position = ValidPosition.Init();
             Console.WriteLine(position);
-            Console.ReadLine();
             var nextPosition = position.MakeTurn();
             while (nextPosition.Score > position.Score) {
                 position = nextPosition;
-                Console.WriteLine(position);
                 Console.ReadLine();
+                Console.WriteLine(position);
                 nextPosition = position.MakeTurn();
             }
             Console.WriteLine("The End");

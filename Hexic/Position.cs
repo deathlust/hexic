@@ -29,34 +29,33 @@ namespace Hexic {
             this.Score = score;
         }
 
-        public int ClusterCenterCount {
+        protected int ClusterCenterCount {
             get {
-                return GetClusters().Sum(list => list.Count);
+                return GetClusterCenters().Sum(list => list.Count);
             }
         }
-        public List<RotationCenter>[] GetClusters() {
-            var clusters = new List<RotationCenter>[MAX_NUMBER + 1];
+        protected List<RotationCenter>[] GetClusterCenters() {
+            var clusterCenters = new List<RotationCenter>[MAX_NUMBER + 1];
             for (int c = 0; c < MAX_NUMBER + 1; ++c) {
-                clusters[c] = new List<RotationCenter>();
+                clusterCenters[c] = new List<RotationCenter>();
             }
             for (int i = 0; i < 2 * COLUMN_COUNT - 1; ++i) {
                 for (int j = 0; j < 2 * SHORT_COLUMN_LENGTH - 1; ++j) {
                     var point = new RotationCenter(i, j);
                     int value;
-                    if (point.CellsAreEqual(out value, shortColumns, longColumns))
-                        clusters[value].Add(point);
+                    if (point.HasEqualCells(out value, shortColumns, longColumns))
+                        clusterCenters[value].Add(point);
                 }
             }
-            return clusters;
+            return clusterCenters;
         }
         public override string ToString() {
-            // TODO: reverse columns?
             var sb = new StringBuilder("   _   _   _   _   _ \n");
-            for (int j = 0; j < SHORT_COLUMN_LENGTH; ++j) {
-                sb.Append(j == 0 ? ' ' : '\\');
+            for (int j = SHORT_COLUMN_LENGTH - 1; j >= 0; --j) {
+                sb.Append(j == SHORT_COLUMN_LENGTH - 1 ? ' ' : '\\');
                 for (int i = 0; i < COLUMN_COUNT; ++i) {
                     sb.Append("_/")
-                        .Append(Symbol(longColumns[i, j]))
+                        .Append(Symbol(longColumns[i, j + 1]))
                         .Append('\\');
                 }
                 sb.Append('\n');
@@ -69,7 +68,7 @@ namespace Hexic {
             }
             for (int i = 0; i < COLUMN_COUNT; ++i) {
                 sb.Append(@"\_/")
-                    .Append(Symbol(longColumns[i, SHORT_COLUMN_LENGTH]));
+                    .Append(Symbol(longColumns[i, 0]));
             }
             sb.Append("\\\n")
                 .Append("  \\_/ \\_/ \\_/ \\_/ \\_/\n")
@@ -79,7 +78,7 @@ namespace Hexic {
         }
         protected virtual string Symbol(int cell) {
             if (cell < 0 || cell > MAX_NUMBER)
-                throw new InvalidOperationException("Wrong");
+                throw new InvalidOperationException("Wrong cell value");
             return cell.ToString();
         }
     }
